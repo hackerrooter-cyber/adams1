@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion Chantier Locale</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="theme-clair">
+  <header class="banner">
+    <div>
+      <h1>Gestion locale des chantiers</h1>
+      <p class="muted">Données stockées en local par identifiant – aucune donnée envoyée au serveur.</p>
+    </div>
+    <div id="auth-status" class="auth-status">Non connecté</div>
+  </header>
+
+  <main>
+    <section id="auth-section" class="card">
+      <h2>Accueil et authentification</h2>
+      <div class="form-grid">
+        <form id="login-form">
+          <h3>Connexion</h3>
+          <label>Identifiant
+            <input type="text" name="loginId" required>
+          </label>
+          <label>Mot de passe
+            <input type="password" name="loginPassword" required>
+          </label>
+          <button type="submit">Se connecter</button>
+        </form>
+        <form id="register-form">
+          <h3>Inscription locale</h3>
+          <label>Identifiant
+            <input type="text" name="registerId" required>
+          </label>
+          <label>Mot de passe
+            <input type="password" name="registerPassword" required>
+          </label>
+          <label>Confirmer le mot de passe
+            <input type="password" name="registerConfirm" required>
+          </label>
+          <label>Rôle
+            <select name="role">
+              <option value="admin">Administrateur</option>
+              <option value="visiteur">Visiteur</option>
+            </select>
+          </label>
+          <label>Mot de passe d’activation (optionnel)
+            <input type="password" name="activation">
+          </label>
+          <p class="muted small">Le mot de passe d’activation contrôle la création de comptes administrateur.</p>
+          <button type="submit">Créer un compte</button>
+        </form>
+      </div>
+      <div class="helper-card">
+        <h4>Aide</h4>
+        <ul>
+          <li>Séparation des chantiers par identifiant.</li>
+          <li>Historique interne pour chaque opération.</li>
+          <li>Inventaire graphique accessible via la barre supérieure.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="dashboard" class="card hidden">
+      <div class="top-bar">
+        <div class="left">
+          <div class="user-chip">
+            <img id="user-avatar" class="avatar hidden" alt="Avatar utilisateur">
+            <span id="current-user"></span>
+          </div>
+          <label>Chantier actif
+            <select id="site-select"></select>
+          </label>
+          <span id="readonly-indicator" class="badge">Lecture seule désactivée</span>
+        </div>
+        <div class="right">
+          <button id="open-donor">Budget Donateur</button>
+          <button id="go-inventory" class="ghost">Inventaire</button>
+          <button id="go-settings" class="ghost">Paramètres</button>
+          <button id="export-pdf" class="ghost">Export PDF</button>
+          <button id="export-excel" class="ghost">Export Excel</button>
+          <button id="logout" class="ghost danger">Déconnexion</button>
+        </div>
+      </div>
+      <div class="indicators">
+        <div class="indicator">
+          <p>Budget déclaré (SAR)</p>
+          <strong id="budget-sar">0</strong>
+        </div>
+        <div class="indicator">
+          <p>Dépenses engagées</p>
+          <strong id="expenses-total">0</strong>
+        </div>
+        <div class="indicator">
+          <p>Solde disponible</p>
+          <strong id="balance">0</strong>
+        </div>
+        <div class="indicator">
+          <p>Dettes fournisseurs</p>
+          <strong id="debts">0</strong>
+        </div>
+      </div>
+    </section>
+
+    <section id="budget-section" class="card hidden">
+      <h2>Budget de référence du chantier</h2>
+      <form id="budget-form" class="inline-form">
+        <label>Budget initial (FCFA)
+          <input type="number" step="0.01" name="initialBudget" required>
+        </label>
+        <label>Taux SAR
+          <input type="number" step="0.01" name="sarRate" required>
+        </label>
+        <label>Note interne
+          <input type="text" name="note">
+        </label>
+        <button type="submit">Enregistrer</button>
+      </form>
+      <div class="grid-4">
+        <div class="stat">Budget initial FCFA: <strong id="budget-initial"></strong></div>
+        <div class="stat">Budget initial SAR: <strong id="budget-initial-sar"></strong></div>
+        <div class="stat">Dépenses payées: <strong id="budget-paid"></strong></div>
+        <div class="stat">Dettes totales: <strong id="budget-debts"></strong></div>
+      </div>
+    </section>
+
+    <section id="records" class="card hidden">
+      <h2>Matériaux, main-d’œuvre et localité</h2>
+      <div class="tabs">
+        <button data-tab="materials" class="active">Matériaux</button>
+        <button data-tab="workers">Ouvriers</button>
+        <button data-tab="locations">Localité</button>
+      </div>
+      <div id="materials" class="tab-panel">
+        <form id="material-form" class="inline-form">
+          <input name="name" placeholder="Nom" required>
+          <input name="amount" type="number" step="0.01" placeholder="Montant" required>
+          <select name="payment">
+            <option value="cash">Comptant</option>
+            <option value="credit">Crédit</option>
+          </select>
+          <input name="date" type="date" required>
+          <input name="quantity" type="number" step="0.01" placeholder="Quantité" required>
+          <input name="category" placeholder="Catégorie">
+          <button>Ajouter</button>
+        </form>
+        <p class="muted small">Un achat à crédit crée automatiquement une dette.</p>
+        <table id="material-table"></table>
+      </div>
+      <div id="workers" class="tab-panel hidden">
+        <form id="worker-form" class="inline-form">
+          <input name="name" placeholder="Nom" required>
+          <input name="trade" placeholder="Métier" required>
+          <input name="amount" type="number" step="0.01" placeholder="Montant global" required>
+          <input name="start" type="date" required>
+          <button>Ajouter</button>
+        </form>
+        <label>Filtrer par métier <input id="worker-filter" placeholder="Ex: Maçon"></label>
+        <p class="muted small">Utilisez les transactions pour enregistrer les tranches de paiement.</p>
+        <table id="worker-table"></table>
+      </div>
+      <div id="locations" class="tab-panel hidden">
+        <form id="location-form" class="inline-form">
+          <input name="description" placeholder="Description" required>
+          <input name="area" placeholder="Étendue" required>
+          <input name="surface" type="number" step="0.01" placeholder="Superficie" required>
+          <input name="price" type="number" step="0.01" placeholder="Prix" required>
+          <input name="paid" type="number" step="0.01" placeholder="Montant payé" required>
+          <input name="date" type="date" required>
+          <select name="mode">
+            <option value="cash">Comptant</option>
+            <option value="credit">Crédit</option>
+          </select>
+          <button>Ajouter</button>
+        </form>
+        <table id="location-table"></table>
+      </div>
+    </section>
+
+    <section id="transactions" class="card hidden">
+      <h2>Transactions, imprévus et suivi</h2>
+      <form id="transaction-form" class="inline-form">
+        <select name="targetType">
+          <option value="worker">Tranche ouvrier</option>
+          <option value="material">Remboursement crédit matériau</option>
+          <option value="location">Remboursement crédit localité</option>
+          <option value="diverse">Dépense imprévue ou diverse</option>
+        </select>
+        <input name="target" placeholder="Cible (nom)" required>
+        <input name="amount" type="number" step="0.01" placeholder="Montant" required>
+        <input name="date" type="date" required>
+        <input name="note" placeholder="Note">
+        <button>Ajouter</button>
+      </form>
+      <div class="unforeseen-bar">
+        <span>Total imprévus: <strong id="unforeseen-total">0</strong></span>
+      </div>
+      <div id="unforeseen-list"></div>
+    </section>
+
+    <section id="history" class="card hidden">
+      <h2>Historique filtrable</h2>
+      <form id="history-filters" class="inline-form">
+        <select name="type">
+          <option value="">Type</option>
+          <option value="material">Matériau</option>
+          <option value="worker">Ouvrier</option>
+          <option value="location">Localité</option>
+          <option value="transaction">Transaction</option>
+        </select>
+        <input name="name" placeholder="Ouvrier/Matériau">
+        <input name="from" type="date">
+        <input name="to" type="date">
+        <button type="submit">Filtrer</button>
+        <button type="button" id="reset-history">Réinitialiser</button>
+      </form>
+      <table id="history-table"></table>
+    </section>
+
+    <section id="settings" class="card hidden">
+      <h2>Paramètres avancés</h2>
+      <div class="settings-grid">
+        <div>
+          <h3>Compte</h3>
+          <p>Identifiant : <span id="account-id"></span></p>
+          <img id="avatar-preview" class="avatar hidden" alt="Prévisualisation de l'avatar">
+          <label>Avatar local
+            <input type="file" id="avatar" accept="image/*">
+          </label>
+          <label>Nouvel identifiant
+            <input type="text" id="new-id">
+          </label>
+          <label>Nouveau mot de passe
+            <input type="password" id="new-password">
+          </label>
+          <button id="update-account">Mettre à jour</button>
+        </div>
+        <div>
+          <h3>Mot de passe d’activation</h3>
+          <label>Définir/mettre à jour
+            <input type="password" id="activation-password">
+          </label>
+          <button id="update-activation">Enregistrer</button>
+        </div>
+        <div>
+          <h3>Taux de change SAR</h3>
+          <label>Taux
+            <input type="number" step="0.01" id="sar-rate-setting">
+          </label>
+          <p class="muted small">Modification protégée par mot de passe administrateur.</p>
+          <button id="update-sar-rate">Mettre à jour</button>
+        </div>
+        <div>
+          <h3>Thème</h3>
+          <button id="toggle-theme">Basculer clair/sombre</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="sites" class="card hidden">
+      <h2>Gestion des chantiers, listes et exports</h2>
+      <div class="form-grid">
+        <div>
+          <h3>Gestion des chantiers</h3>
+          <label>Nom du chantier
+            <input id="site-name" placeholder="Chantier A">
+          </label>
+          <button id="rename-site">Renommer</button>
+          <button id="duplicate-site">Dupliquer</button>
+          <button id="archive-site" class="ghost">Archiver</button>
+          <button id="restore-site" class="ghost">Restaurer</button>
+          <button id="lock-site" class="ghost">Verrouiller lecture seule</button>
+          <button id="delete-site" class="ghost danger">Supprimer</button>
+        </div>
+        <div>
+          <h3>Listes personnalisables</h3>
+          <label>Suggestion matériau
+            <input id="custom-material">
+          </label>
+          <label>Suggestion métier
+            <input id="custom-trade">
+          </label>
+          <label>Suggestion catégorie
+            <input id="custom-category">
+          </label>
+          <button id="save-suggestions">Enregistrer</button>
+        </div>
+        <div>
+          <h3>Exports globaux</h3>
+          <button id="export-pdf-all" class="ghost">PDF tous chantiers</button>
+          <button id="export-zip" class="ghost">ZIP (PDF par chantier)</button>
+          <button id="export-json" class="ghost">Sauvegarde JSON</button>
+          <button id="import-json" class="ghost">Restaurer JSON</button>
+          <textarea id="journal" placeholder="Journal interne" rows="5"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section id="inventory" class="card hidden">
+      <h2>Vue Inventaire</h2>
+      <p>Synthèse des totaux matériaux, main-d’œuvre et dépenses.</p>
+      <div class="grid-3">
+        <div class="stat">Total matériaux: <strong id="inv-materials"></strong></div>
+        <div class="stat">Total main-d’œuvre: <strong id="inv-workers"></strong></div>
+        <div class="stat">Dépense globale: <strong id="inv-total"></strong></div>
+      </div>
+      <canvas id="material-chart"></canvas>
+      <canvas id="worker-chart"></canvas>
+      <div class="buttons">
+        <button id="inventory-pdf" class="ghost">Export PDF inventaire</button>
+        <button id="inventory-excel" class="ghost">Export Excel inventaire</button>
+      </div>
+      <div id="inventory-tables"></div>
+    </section>
+
+    <section id="donor" class="card hidden">
+      <h2>Page Budget Donateur</h2>
+      <div class="donor-header">
+        <span class="badge" id="donor-remaining">Budget restant: 0</span>
+        <span class="badge" id="donor-active">Tranches actives: 0</span>
+      </div>
+      <div class="form-grid">
+        <div>
+          <label>Budget sélectionné
+            <input id="donor-budget-name" placeholder="Donateur A">
+          </label>
+          <label>Montant (SAR)
+            <input id="donor-budget-amount" type="number" step="0.01">
+          </label>
+          <label>Taux SAR/XOF
+            <input id="donor-rate" type="number" step="0.01">
+          </label>
+          <button id="save-donor-budget">Enregistrer budget</button>
+        </div>
+        <div>
+          <h3>Ajouter une tranche</h3>
+          <label>Date (pas de futur)
+            <input id="donor-date" type="date">
+          </label>
+          <label>Projet
+            <input id="donor-project">
+          </label>
+          <label>Pays / Ville
+            <input id="donor-country">
+            <input id="donor-city">
+          </label>
+          <label>Montant
+            <input id="donor-amount" type="number" step="0.01">
+          </label>
+          <select id="donor-currency">
+            <option value="SAR">SAR</option>
+            <option value="XOF">XOF</option>
+          </select>
+          <button id="add-donor-slice">Ajouter la tranche</button>
+        </div>
+      </div>
+      <div class="buttons">
+        <button id="donor-export-csv" class="ghost">Export CSV</button>
+        <button id="donor-export-pdf" class="ghost">Export PDF</button>
+      </div>
+      <table id="donor-table"></table>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
