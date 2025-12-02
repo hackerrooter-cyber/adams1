@@ -18,7 +18,14 @@
 
   <main>
     <section id="auth-section" class="card">
-      <h2>Accueil et authentification</h2>
+      <div class="card-header">
+        <div>
+          <p class="eyebrow">Accueil</p>
+          <h2>Accueil et authentification</h2>
+          <p class="subtitle">Interface locale sécurisée sans serveur : vos identifiants et données restent sur cet appareil.</p>
+        </div>
+        <div class="pill success">Stockage local uniquement</div>
+      </div>
       <div class="form-grid">
         <form id="login-form">
           <h3>Connexion</h3>
@@ -65,6 +72,14 @@
     </section>
 
     <section id="dashboard" class="card hidden">
+      <div class="card-header">
+        <div>
+          <p class="eyebrow">Pilotage</p>
+          <h2>Tableau de bord principal</h2>
+          <p class="subtitle">Vue rapide sur l’utilisateur connecté, le chantier actif et les actions clés.</p>
+        </div>
+        <div class="pill neutral" id="site-chip">Chantier actif</div>
+      </div>
       <div class="top-bar">
         <div class="left">
           <div class="user-chip">
@@ -106,7 +121,14 @@
     </section>
 
     <section id="budget-section" class="card hidden">
-      <h2>Budget de référence du chantier</h2>
+      <div class="card-header">
+        <div>
+          <p class="eyebrow">Financement</p>
+          <h2>Budget de référence du chantier</h2>
+          <p class="subtitle">Définissez le socle budgétaire et les notes internes réservées aux administrateurs.</p>
+        </div>
+        <div class="pill warning">Accès admin</div>
+      </div>
       <form id="budget-form" class="inline-form">
         <label>Budget initial (FCFA)
           <input type="number" step="0.01" name="initialBudget" required>
@@ -128,7 +150,14 @@
     </section>
 
     <section id="records" class="card hidden">
-      <h2>Matériaux, main-d’œuvre et localité</h2>
+      <div class="card-header">
+        <div>
+          <p class="eyebrow">Inventaire</p>
+          <h2>Matériaux, main-d’œuvre et localité</h2>
+          <p class="subtitle">Capturez les achats, contrats et acquisitions avec rappel sur les dettes automatiques.</p>
+        </div>
+        <div class="pill neutral">Vue par onglet</div>
+      </div>
       <div class="tabs">
         <button data-tab="materials" class="active">Matériaux</button>
         <button data-tab="workers">Ouvriers</button>
@@ -181,7 +210,14 @@
     </section>
 
     <section id="transactions" class="card hidden">
-      <h2>Transactions, imprévus et suivi</h2>
+      <div class="card-header">
+        <div>
+          <p class="eyebrow">Suivi</p>
+          <h2>Transactions, imprévus et suivi</h2>
+          <p class="subtitle">Enregistrez tranches, remboursements ou imprévus avec une description horodatée.</p>
+        </div>
+        <div class="pill accent">Journal automatique</div>
+      </div>
       <form id="transaction-form" class="inline-form">
         <select name="targetType">
           <option value="worker">Tranche ouvrier</option>
@@ -202,7 +238,14 @@
     </section>
 
     <section id="history" class="card hidden">
-      <h2>Historique filtrable</h2>
+      <div class="card-header">
+        <div>
+          <p class="eyebrow">Traçabilité</p>
+          <h2>Historique filtrable</h2>
+          <p class="subtitle">Filtrez par type, acteur ou période puis réinitialisez en un clic.</p>
+        </div>
+        <div class="pill neutral">Vue audit</div>
+      </div>
       <form id="history-filters" class="inline-form">
         <select name="type">
           <option value="">Type</option>
@@ -221,7 +264,14 @@
     </section>
 
     <section id="settings" class="card hidden">
-      <h2>Paramètres avancés</h2>
+      <div class="card-header">
+        <div>
+          <p class="eyebrow">Compte et sécurité</p>
+          <h2>Paramètres avancés</h2>
+          <p class="subtitle">Gérez l’identité locale, l’avatar, l’activation et le thème en conservant les protections admin.</p>
+        </div>
+        <div class="pill warning">Actions sensibles</div>
+      </div>
       <div class="settings-grid">
         <div>
           <h3>Compte</h3>
@@ -261,7 +311,14 @@
     </section>
 
     <section id="sites" class="card hidden">
-      <h2>Gestion des chantiers, listes et exports</h2>
+      <div class="card-header">
+        <div>
+          <p class="eyebrow">Pilotage multi-chantiers</p>
+          <h2>Gestion des chantiers, listes et exports</h2>
+          <p class="subtitle">Renommez, dupliquez, archivez ou verrouillez vos chantiers et enrichissez les suggestions.</p>
+        </div>
+        <div class="pill danger">Actions irréversibles</div>
+      </div>
       <div class="form-grid">
         <div>
           <h3>Gestion des chantiers</h3>
@@ -300,8 +357,14 @@
     </section>
 
     <section id="inventory" class="card hidden">
-      <h2>Vue Inventaire</h2>
-      <p>Synthèse des totaux matériaux, main-d’œuvre et dépenses.</p>
+      <div class="card-header">
+        <div>
+          <p class="eyebrow">Synthèse</p>
+          <h2>Vue Inventaire</h2>
+          <p class="subtitle">Totaux consolidés par catégorie et métier avec graphiques interactifs.</p>
+        </div>
+        <div class="pill accent">Export dédié</div>
+      </div>
       <div class="grid-3">
         <div class="stat">Total matériaux: <strong id="inv-materials"></strong></div>
         <div class="stat">Total main-d’œuvre: <strong id="inv-workers"></strong></div>
@@ -317,7 +380,14 @@
     </section>
 
     <section id="donor" class="card hidden">
-      <h2>Page Budget Donateur</h2>
+      <div class="card-header">
+        <div>
+          <p class="eyebrow">Fenêtre dédiée</p>
+          <h2>Page Budget Donateur</h2>
+          <p class="subtitle">Badges de suivi, conversions SAR/XOF et export CSV/PDF sur les tranches.</p>
+        </div>
+        <div class="pill neutral">Vue séparée</div>
+      </div>
       <div class="donor-header">
         <span class="badge" id="donor-remaining">Budget restant: 0</span>
         <span class="badge" id="donor-active">Tranches actives: 0</span>

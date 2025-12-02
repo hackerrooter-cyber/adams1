@@ -79,6 +79,15 @@ function renderAvatar(img, src) {
 function renderLockIndicator() {
   const site = currentSite();
   document.getElementById('readonly-indicator').textContent = site?.locked ? 'Lecture seule' : 'Lecture seule désactivée';
+  renderSiteChip();
+}
+
+function renderSiteChip() {
+  const chip = document.getElementById('site-chip');
+  if (!chip) return;
+  const site = currentSite();
+  chip.textContent = site ? `Chantier : ${site.name}` : 'Chantier actif';
+  chip.classList.toggle('warning', !!site?.locked);
 }
 
 function currentSite() {
@@ -113,6 +122,8 @@ function renderIndicators() {
   document.getElementById('balance').textContent = formatCurrency(balance);
   document.getElementById('debts').textContent = formatCurrency(debts);
 
+  renderSiteChip();
+  
   document.getElementById('budget-initial').textContent = formatCurrency(budgetInitial);
   document.getElementById('budget-initial-sar').textContent = formatSar(budgetInitial, rate);
   const paid = expenses - debts;
