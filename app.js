@@ -90,6 +90,12 @@ function renderSiteChip() {
   chip.classList.toggle('warning', !!site?.locked);
 }
 
+function tableHtml(headers, rows) {
+  const headerRow = `<tr>${headers.map((h) => `<th>${h}</th>`).join('')}</tr>`;
+  const body = rows.length ? rows.join('') : `<tr><td class="empty-cell" colspan="${headers.length}">Aucune donnée pour le moment</td></tr>`;
+  return headerRow + body;
+}
+
 function currentSite() {
   if (!state.currentUser) return null;
   return state.currentUser.sites.find((s) => s.id === state.currentSiteId);
@@ -136,18 +142,24 @@ function renderIndicators() {
 function renderTables() {
   const site = currentSite();
   const materialTable = document.getElementById('material-table');
-  materialTable.innerHTML = '<tr><th>Nom</th><th>Montant</th><th>Mode</th><th>Date</th><th>Qté</th><th>Catégorie</th></tr>' +
-    site.materials.map((m) => `<tr><td>${m.name}</td><td>${formatCurrency(m.amount)}</td><td>${m.payment}</td><td>${m.date}</td><td>${m.quantity}</td><td>${m.category || ''}</td></tr>`).join('');
+  materialTable.innerHTML = tableHtml(
+    ['Nom', 'Montant', 'Mode', 'Date', 'Qté', 'Catégorie'],
+    site.materials.map((m) => `<tr><td>${m.name}</td><td>${formatCurrency(m.amount)}</td><td>${m.payment}</td><td>${m.date}</td><td>${m.quantity}</td><td>${m.category || ''}</td></tr>`),
+  );
 
   const filter = document.getElementById('worker-filter').value?.toLowerCase?.() || '';
   const workers = site.workers.filter((w) => !filter || w.trade.toLowerCase().includes(filter));
   const workerTable = document.getElementById('worker-table');
-  workerTable.innerHTML = '<tr><th>Nom</th><th>Métier</th><th>Montant</th><th>Début</th></tr>' +
-    workers.map((w) => `<tr><td>${w.name}</td><td>${w.trade}</td><td>${formatCurrency(w.amount)}</td><td>${w.start}</td></tr>`).join('');
+  workerTable.innerHTML = tableHtml(
+    ['Nom', 'Métier', 'Montant', 'Début'],
+    workers.map((w) => `<tr><td>${w.name}</td><td>${w.trade}</td><td>${formatCurrency(w.amount)}</td><td>${w.start}</td></tr>`),
+  );
 
   const locationTable = document.getElementById('location-table');
-  locationTable.innerHTML = '<tr><th>Description</th><th>Étendue</th><th>Superficie</th><th>Prix</th><th>Payé</th><th>Date</th><th>Mode</th></tr>' +
-    site.locations.map((l) => `<tr><td>${l.description}</td><td>${l.area}</td><td>${l.surface}</td><td>${formatCurrency(l.price)}</td><td>${formatCurrency(l.paid)}</td><td>${l.date}</td><td>${l.mode}</td></tr>`).join('');
+  locationTable.innerHTML = tableHtml(
+    ['Description', 'Étendue', 'Superficie', 'Prix', 'Payé', 'Date', 'Mode'],
+    site.locations.map((l) => `<tr><td>${l.description}</td><td>${l.area}</td><td>${l.surface}</td><td>${formatCurrency(l.price)}</td><td>${formatCurrency(l.paid)}</td><td>${l.date}</td><td>${l.mode}</td></tr>`),
+  );
 
   const unforeseenList = document.getElementById('unforeseen-list');
   const unforeseen = site.transactions.filter((t) => t.targetType === 'diverse');
@@ -155,8 +167,10 @@ function renderTables() {
   unforeseenList.innerHTML = unforeseen.map((t) => `<div class="stat">${t.date} – ${t.note || 'Imprévu'} : ${formatCurrency(t.amount)}</div>`).join('');
 
   const historyTable = document.getElementById('history-table');
-  historyTable.innerHTML = '<tr><th>Date</th><th>Type</th><th>Détail</th><th>Montant</th></tr>' +
-    site.history.map((h) => `<tr><td>${h.date}</td><td>${h.type}</td><td>${h.detail}</td><td>${formatCurrency(h.amount)}</td></tr>`).join('');
+  historyTable.innerHTML = tableHtml(
+    ['Date', 'Type', 'Détail', 'Montant'],
+    site.history.map((h) => `<tr><td>${h.date}</td><td>${h.type}</td><td>${h.detail}</td><td>${formatCurrency(h.amount)}</td></tr>`),
+  );
 
   renderInventory();
   renderDonor();
@@ -189,11 +203,13 @@ function renderInventory() {
   renderChart('worker-chart', Object.keys(workerByTrade), Object.values(workerByTrade), 'Ouvriers par métier', 'workers');
 
   const tables = document.getElementById('inventory-tables');
+  const materialRows = Object.entries(materialByCategory).map(([c, v]) => `<tr><td>${c}</td><td>${formatCurrency(v)}</td></tr>`);
+  const workerRows = Object.entries(workerByTrade).map(([c, v]) => `<tr><td>${c}</td><td>${formatCurrency(v)}</td></tr>`);
   tables.innerHTML = `
     <h3>Matériaux</h3>
-    <table><tr><th>Catégorie</th><th>Total</th></tr>${Object.entries(materialByCategory).map(([c,v]) => `<tr><td>${c}</td><td>${formatCurrency(v)}</td></tr>`).join('')}</table>
+    <table>${tableHtml(['Catégorie', 'Total'], materialRows)}</table>
     <h3>Ouvriers</h3>
-    <table><tr><th>Métier</th><th>Total</th></tr>${Object.entries(workerByTrade).map(([c,v]) => `<tr><td>${c}</td><td>${formatCurrency(v)}</td></tr>`).join('')}</table>
+    <table>${tableHtml(['Métier', 'Total'], workerRows)}</table>
   `;
 }
 
@@ -211,8 +227,10 @@ function renderDonor() {
   const site = currentSite();
   const donor = site.donor || { budget: null, slices: [] };
   const table = document.getElementById('donor-table');
-  table.innerHTML = '<tr><th>Date</th><th>Projet</th><th>Pays/Ville</th><th>Montant</th><th>Devise</th></tr>' +
-    donor.slices.map((s) => `<tr><td>${s.date}</td><td>${s.project}</td><td>${s.country} / ${s.city}</td><td>${s.amount}</td><td>${s.currency}</td></tr>`).join('');
+  table.innerHTML = tableHtml(
+    ['Date', 'Projet', 'Pays/Ville', 'Montant', 'Devise'],
+    donor.slices.map((s) => `<tr><td>${s.date}</td><td>${s.project}</td><td>${s.country} / ${s.city}</td><td>${s.amount}</td><td>${s.currency}</td></tr>`),
+  );
   const remaining = (donor.budget?.amount || 0) - donor.slices.reduce((s, sl) => s + Number(sl.amount || 0), 0);
   document.getElementById('donor-remaining').textContent = `Budget restant: ${remaining}`;
   document.getElementById('donor-active').textContent = `Tranches actives: ${donor.slices.length}`;
@@ -404,8 +422,10 @@ document.getElementById('history-filters').addEventListener('submit', (e) => {
     return true;
   });
   const table = document.getElementById('history-table');
-  table.innerHTML = '<tr><th>Date</th><th>Type</th><th>Détail</th><th>Montant</th></tr>' +
-    filtered.map((h) => `<tr><td>${h.date}</td><td>${h.type}</td><td>${h.detail}</td><td>${formatCurrency(h.amount)}</td></tr>`).join('');
+  table.innerHTML = tableHtml(
+    ['Date', 'Type', 'Détail', 'Montant'],
+    filtered.map((h) => `<tr><td>${h.date}</td><td>${h.type}</td><td>${h.detail}</td><td>${formatCurrency(h.amount)}</td></tr>`),
+  );
 });
 
 document.getElementById('reset-history').addEventListener('click', renderTables);
@@ -592,8 +612,10 @@ document.getElementById('donor-export-pdf').addEventListener('click', () => aler
 // History initialization
 function initHistory() {
   const site = currentSite();
-  document.getElementById('history-table').innerHTML = '<tr><th>Date</th><th>Type</th><th>Détail</th><th>Montant</th></tr>' +
-    site.history.map((h) => `<tr><td>${h.date}</td><td>${h.type}</td><td>${h.detail}</td><td>${formatCurrency(h.amount)}</td></tr>`).join('');
+  document.getElementById('history-table').innerHTML = tableHtml(
+    ['Date', 'Type', 'Détail', 'Montant'],
+    site.history.map((h) => `<tr><td>${h.date}</td><td>${h.type}</td><td>${h.detail}</td><td>${formatCurrency(h.amount)}</td></tr>`),
+  );
 }
 
 // Tab handling
